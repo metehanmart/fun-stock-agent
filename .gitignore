@@ -1,0 +1,68 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# FastAPI / Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editors
+.vscode/
+.idea/
+
+# Local data / generated files
+data/
+*.csv
+*.xlsx
+*.parquet
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / frontend, if you later add npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python lock files - optional choice
+# Keep these if you want reproducible installs:
+# poetry.lock
+# Pipfile.lock
+
+# Do not ignore simple static frontend files
+# frontend/index.html
+# frontend/style.css
+# frontend/app.js
