@@ -41,6 +41,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Visual Studio
+.vs/
+
 # Local data / generated files
 data/
 *.csv
