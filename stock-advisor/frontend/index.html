@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Advisor Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; color: #f1f5f9; }
+    .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem; }
+
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.35rem; }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: #6366f1; }
+
+    button {
+      width: 100%;
+      padding: 0.7rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) { background: #4f46e5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #result { margin-top: 1.5rem; }
+
+    .result-card {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 1.25rem;
+      border: 1px solid #334155;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .ticker-name h2 { font-size: 1.4rem; font-weight: 700; color: #f1f5f9; }
+    .ticker-name p { font-size: 0.85rem; color: #94a3b8; }
+
+    .price { text-align: right; }
+    .price .value { font-size: 1.4rem; font-weight: 700; color: #f1f5f9; }
+    .price .currency { font-size: 0.8rem; color: #94a3b8; }
+
+    .badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .badge-advice-Buy    { background: #14532d; color: #4ade80; }
+    .badge-advice-Hold   { background: #1c3d5a; color: #7dd3fc; }
+    .badge-advice-Watch  { background: #3d3400; color: #fbbf24; }
+    .badge-advice-Avoid  { background: #4c0519; color: #f87171; }
+    .badge-risk-Low    { background: #14532d; color: #4ade80; }
+    .badge-risk-Medium { background: #3d3400; color: #fbbf24; }
+    .badge-risk-High   { background: #4c0519; color: #f87171; }
+    .badge-trend { background: #1e3a5f; color: #93c5fd; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .metric {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 0.6rem 0.5rem;
+      text-align: center;
+    }
+    .metric .label { font-size: 0.72rem; color: #64748b; }
+    .metric .val { font-size: 1rem; font-weight: 600; }
+    .pos { color: #4ade80; }
+    .neg { color: #f87171; }
+    .neu { color: #f1f5f9; }
+
+    .advice-box {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .disclaimer {
+      font-size: 0.72rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .error-box {
+      background: #4c0519;
+      border: 1px solid #f87171;
+      border-radius: 8px;
+      padding: 0.8rem;
+      color: #fca5a5;
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #6366f1;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <h1>📈 Stock Advisor Demo</h1>
+  <p class="subtitle">Rule-based analysis · Not financial advice</p>
+
+  <div class="card">
+    <label for="ticker">Ticker Symbol</label>
+    <input id="ticker" type="text" placeholder="e.g. QQQM, AAPL, SPY" value="QQQM" autocomplete="off" spellcheck="false" />
+
+    <label for="assetType">Asset Type</label>
+    <select id="assetType">
+      <option value="stock">Stock</option>
+      <option value="etf" selected>ETF / Fund</option>
+      <option value="index">Index</option>
+    </select>
+
+    <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    function colorClass(pct) {
+      if (pct > 0) return "pos";
+      if (pct < 0) return "neg";
+      return "neu";
+    }
+
+    function fmt(pct) {
+      return (pct >= 0 ? "+" : "") + pct.toFixed(2) + "%";
+    }
+
+    async function analyze() {
+      const ticker = document.getElementById("ticker").value.trim().toUpperCase();
+      const assetType = document.getElementById("assetType").value;
+      const btn = document.getElementById("analyzeBtn");
+      const resultDiv = document.getElementById("result");
+
+      if (!ticker) { alert("Please enter a ticker symbol."); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Fetching…';
+      resultDiv.innerHTML = "";
+
+      try {
+        const resp = await fetch(`${API_BASE}/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticker, asset_type: assetType }),
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          resultDiv.innerHTML = `<div class="error-box">⚠️ ${data.detail || "Unknown error"}</div>`;
+          return;
+        }
+
+        resultDiv.innerHTML = `
+          <div class="result-card">
+            <div class="result-header">
+              <div class="ticker-name">
+                <h2>${data.ticker}</h2>
+                <p>${data.company_name}</p>
+              </div>
+              <div class="price">
+                <div class="value">${data.current_price.toFixed(2)}</div>
+                <div class="currency">${data.currency}</div>
+              </div>
+            </div>
+
+            <div class="badges">
+              <span class="badge badge-advice-${data.advice}">${data.advice}</span>
+              <span class="badge badge-risk-${data.risk_level}">Risk: ${data.risk_level}</span>
+              <span class="badge badge-trend">${data.trend_status}</span>
+            </div>
+
+            <div class="metrics">
+              <div class="metric">
+                <div class="label">5-Day</div>
+                <div class="val ${colorClass(data.change_5d_pct)}">${fmt(data.change_5d_pct)}</div>
+              </div>
+              <div class="metric">
+                <div class="label">1-Month</div>
+                <div class="val ${colorClass(data.change_1m_pct)}">${fmt(data.change_1m_pct)}</div>
+              </div>
+              <div class="metric">
+                <div class="label">3-Month</div>
+                <div class="val ${colorClass(data.change_3m_pct)}">${fmt(data.change_3m_pct)}</div>
+              </div>
+              <div class="metric">
+                <div class="label">MA-50</div>
+                <div class="val neu">${data.ma_50 != null ? data.ma_50.toFixed(2) : "N/A"}</div>
+              </div>
+              <div class="metric">
+                <div class="label">MA-200</div>
+                <div class="val neu">${data.ma_200 != null ? data.ma_200.toFixed(2) : "N/A"}</div>
+              </div>
+              <div class="metric">
+                <div class="label">Asset</div>
+                <div class="val neu">${data.asset_type.toUpperCase()}</div>
+              </div>
+            </div>
+
+            <div class="advice-box">${data.advice_reason}</div>
+            <p class="disclaimer">${data.disclaimer}</p>
+          </div>`;
+      } catch (err) {
+        resultDiv.innerHTML = `<div class="error-box">⚠️ Could not reach the API at ${API_BASE}. Is the server running?</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Analyze";
+      }
+    }
+
+    // Allow Enter key to trigger analysis
+    document.getElementById("ticker").addEventListener("keydown", e => {
+      if (e.key === "Enter") analyze();
+    });
+  </script>
+</body>
+</html>
